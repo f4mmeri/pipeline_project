@@ -22,7 +22,7 @@ addi x9,  x1, 5          # x9  = 17
 andi x10, x1, 10         # x10 = 8
 ori  x11, x1, 3          # x11 = 15
 xori x12, x1, 5          # x12 = 9
-slti x13, x2, 11         # x13 = 1   (10 < 11)
+slti x13, x2, 20         # x13  
 nop
 nop
 nop
