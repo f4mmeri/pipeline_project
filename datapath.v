@@ -1,5 +1,3 @@
- 
-
 module datapath(
     input clk,
     input reset,
@@ -291,7 +289,7 @@ module datapath(
     assign PCSrcE = (BranchE && ZeroE) || JumpE;
 
 
-    REGISTRO EX/MEM
+    //REGISTRO EX/MEM
  
 
     always @(posedge clk) begin
