@@ -2,9 +2,10 @@ module riscvpipeline(
     input         clk,
     input         reset,
 
-    // Instruction memory
+    // Instruction memory (Dual Fetch)
     output [31:0] PC,
-    input  [31:0] Instr,
+    input  [31:0] Instr0,
+    input  [31:0] Instr1,
 
     // Data memory
     output        MemWrite,
@@ -13,117 +14,185 @@ module riscvpipeline(
     input  [31:0] ReadData
 );
 
-    //   Datapath <-> controller  
-    wire [6:0] op;
-    wire [2:0] funct3;
-    wire       funct7b5;
+    // =========================================================================
+    // SENALES DATAPATH <-> CONTROLADORES
+    // =========================================================================
+    // Via 0
+    wire [6:0] op0;
+    wire [2:0] funct3_0;
+    wire       funct7b5_0;
+    wire       RegWrite0D, MemWrite0D, Jump0D, Branch0D, ALUSrc0D;
+    wire [1:0] ResultSrc0D, ImmSrc0D;
+    wire [2:0] ALUControl0D;
 
-    wire       RegWriteD;
-    wire       MemWriteD;
-    wire       JumpD;
-    wire       BranchD;
-    wire       ALUSrcD;
-    wire [1:0] ResultSrcD;
-    wire [1:0] ImmSrcD;
-    wire [2:0] ALUControlD;
+    // Via 1
+    wire [6:0] op1;
+    wire [2:0] funct3_1;
+    wire       funct7b5_1;
+    wire       RegWrite1D, MemWrite1D, Jump1D, Branch1D, ALUSrc1D;
+    wire [1:0] ResultSrc1D, ImmSrc1D;
+    wire [2:0] ALUControl1D;
 
-    //   Datapath <-> hazard  
-    wire [4:0] Rs1D, Rs2D;
-    wire [4:0] Rs1E, Rs2E;
-    wire [4:0] RdE, RdM, RdW;
+    // =========================================================================
+    // SENALES DATAPATH <-> HAZARD UNIT
+    // =========================================================================
+    wire [4:0] Rs1_0D, Rs2_0D, Rs1_1D, Rs2_1D;
+    wire [4:0] Rs1_0E, Rs2_0E, Rs1_1E, Rs2_1E;
+    wire [4:0] Rd0E, Rd1E, Rd0M, Rd1M, Rd0W, Rd1W;
     wire       PCSrcE;
-    wire       RegWriteM, RegWriteW;
-    wire       ResultSrcE0;
+    wire       RegWrite0M, RegWrite1M, RegWrite0W, RegWrite1W;
+    wire       ResultSrc0E0;
 
     wire       StallF, StallD;
     wire       FlushD, FlushE;
-    wire [1:0] ForwardAE, ForwardBE;
 
-
-    //   Controller (etapa Decode)  
-    controller c(
-        .op(op),
-        .funct3(funct3),
-        .funct7b5(funct7b5),
-        .ResultSrc(ResultSrcD),
-        .MemWrite(MemWriteD),
-        .ALUSrc(ALUSrcD),
-        .RegWrite(RegWriteD),
-        .Jump(JumpD),
-        .Branch(BranchD),
-        .ImmSrc(ImmSrcD),
-        .ALUControl(ALUControlD)
+    // =========================================================================
+    // DUAL DECODE: DOS CONTROLADORES EN PARALELO
+    // =========================================================================
+    // Controlador Via 0
+    controller c0(
+        .op(op0),
+        .funct3(funct3_0),
+        .funct7b5(funct7b5_0),
+        .ResultSrc(ResultSrc0D),
+        .MemWrite(MemWrite0D),
+        .ALUSrc(ALUSrc0D),
+        .RegWrite(RegWrite0D),
+        .Jump(Jump0D),
+        .Branch(Branch0D),
+        .ImmSrc(ImmSrc0D),
+        .ALUControl(ALUControl0D)
     );
 
+    // Controlador Via 1
+    controller c1(
+        .op(op1),
+        .funct3(funct3_1),
+        .funct7b5(funct7b5_1),
+        .ResultSrc(ResultSrc1D),
+        .MemWrite(MemWrite1D),
+        .ALUSrc(ALUSrc1D),
+        .RegWrite(RegWrite1D),
+        .Jump(Jump1D),
+        .Branch(Branch1D),
+        .ImmSrc(ImmSrc1D),
+        .ALUControl(ALUControl1D)
+    );
 
-    //   Hazard Unit  
+    // =========================================================================
+    // HAZARD UNIT ADAPTADA A DUAL-ISSUE
+    // =========================================================================
     hazard hz(
-        .Rs1D(Rs1D),
-        .Rs2D(Rs2D),
-        .Rs1E(Rs1E),
-        .Rs2E(Rs2E),
-        .RdE(RdE),
-        .RdM(RdM),
-        .RdW(RdW),
-        .RegWriteM(RegWriteM),
-        .RegWriteW(RegWriteW),
-        .ResultSrcE0(ResultSrcE0),
+        .Rs1_0D(Rs1_0D),
+        .Rs2_0D(Rs2_0D),
+        .Rs1_0E(Rs1_0E),
+        .Rs2_0E(Rs2_0E),
+        .Rd0E(Rd0E),
+        .Rd0M(Rd0M),
+        .Rd0W(Rd0W),
+
+        .Rs1_1D(Rs1_1D),
+        .Rs2_1D(Rs2_1D),
+        .Rs1_1E(Rs1_1E),
+        .Rs2_1E(Rs2_1E),
+        .Rd1E(Rd1E),
+        .Rd1M(Rd1M),
+        .Rd1W(Rd1W),
+
+        .RegWrite0M(RegWrite0M),
+        .RegWrite1M(RegWrite1M),
+        .RegWrite0W(RegWrite0W),
+        .RegWrite1W(RegWrite1W),
+        .ResultSrc0E0(ResultSrc0E0),
         .PCSrcE(PCSrcE),
-        .ForwardAE(ForwardAE),
-        .ForwardBE(ForwardBE),
+
         .StallF(StallF),
         .StallD(StallD),
         .FlushD(FlushD),
         .FlushE(FlushE)
     );
 
-
-    // Datapath 
+    // =========================================================================
+    // DATAPATH DUAL-ISSUE PRELIMINAR
+    // =========================================================================
     datapath dp(
         .clk(clk),
         .reset(reset),
 
-        .RegWriteD(RegWriteD),
-        .MemWriteD(MemWriteD),
-        .JumpD(JumpD),
-        .BranchD(BranchD),
-        .ALUSrcD(ALUSrcD),
-        .ResultSrcD(ResultSrcD),
-        .ImmSrcD(ImmSrcD),
-        .ALUControlD(ALUControlD),
+        // Control Via 0
+        .RegWrite0D(RegWrite0D),
+        .MemWrite0D(MemWrite0D),
+        .Jump0D(Jump0D),
+        .Branch0D(Branch0D),
+        .ALUSrc0D(ALUSrc0D),
+        .ResultSrc0D(ResultSrc0D),
+        .ImmSrc0D(ImmSrc0D),
+        .ALUControl0D(ALUControl0D),
 
+        // Control Via 1
+        .RegWrite1D(RegWrite1D),
+        .MemWrite1D(MemWrite1D),
+        .Jump1D(Jump1D),
+        .Branch1D(Branch1D),
+        .ALUSrc1D(ALUSrc1D),
+        .ResultSrc1D(ResultSrc1D),
+        .ImmSrc1D(ImmSrc1D),
+        .ALUControl1D(ALUControl1D),
+
+        // Hazards
         .StallF(StallF),
         .StallD(StallD),
         .FlushD(FlushD),
         .FlushE(FlushE),
-        .ForwardAE(ForwardAE),
-        .ForwardBE(ForwardBE),
 
-        .op(op),
-        .funct3(funct3),
-        .funct7b5(funct7b5),
+        // Hacia controladores
+        .op0(op0),
+        .funct3_0(funct3_0),
+        .funct7b5_0(funct7b5_0),
+        .op1(op1),
+        .funct3_1(funct3_1),
+        .funct7b5_1(funct7b5_1),
 
-        .Rs1D(Rs1D),
-        .Rs2D(Rs2D),
-        .Rs1E(Rs1E),
-        .Rs2E(Rs2E),
-        .RdE(RdE),
-        .RdM(RdM),
-        .RdW(RdW),
+        // Hacia hazard unit
+        .Rs1_0D(Rs1_0D),
+        .Rs2_0D(Rs2_0D),
+        .Rs1_1D(Rs1_1D),
+        .Rs2_1D(Rs2_1D),
+        .Rs1_0E(Rs1_0E),
+        .Rs2_0E(Rs2_0E),
+        .Rs1_1E(Rs1_1E),
+        .Rs2_1E(Rs2_1E),
+        .Rd0E(Rd0E),
+        .Rd1E(Rd1E),
+        .Rd0M(Rd0M),
+        .Rd1M(Rd1M),
+        .Rd0W(Rd0W),
+        .Rd1W(Rd1W),
         .PCSrcE(PCSrcE),
-        .RegWriteM(RegWriteM),
-        .RegWriteW(RegWriteW),
-        .ResultSrcE0(ResultSrcE0),
+        .RegWrite0M(RegWrite0M),
+        .RegWrite1M(RegWrite1M),
+        .RegWrite0W(RegWrite0W),
+        .RegWrite1W(RegWrite1W),
+        .ResultSrc0E0(ResultSrc0E0),
 
-        // Instruction memory
+        // Memoria de instrucciones (Dual Fetch)
         .PCF(PC),
-        .InstrF(Instr),
+        .Instr0F(Instr0),
+        .Instr1F(Instr1),
 
-        // Data memory
+        // Memoria de datos
         .ALUResultM(DataAdr),
         .WriteDataM(WriteData),
         .MemWriteM(MemWrite),
-        .ReadDataM(ReadData)
+        .ReadDataM(ReadData),
+
+        // Senales de diagnostico (opcionales)
+        .Instr0D(),
+        .Instr1D(),
+        .ALUResult0E(),
+        .ALUResult1E(),
+        .Result0W(),
+        .Result1W()
     );
 
 endmodule

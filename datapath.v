@@ -2,127 +2,92 @@ module datapath(
     input clk,
     input reset,
 
-    //control de la etapa Decode
-    input        RegWriteD,
-    input        MemWriteD,
-    input        JumpD,
-    input        BranchD,
-    input        ALUSrcD,
-    input  [1:0] ResultSrcD,
-    input  [1:0] ImmSrcD,
-    input  [2:0] ALUControlD,
+    // Control etapa Decode - Via 0
+    input        RegWrite0D,
+    input        MemWrite0D,
+    input        Jump0D,
+    input        Branch0D,
+    input        ALUSrc0D,
+    input  [1:0] ResultSrc0D,
+    input  [1:0] ImmSrc0D,
+    input  [2:0] ALUControl0D,
 
-    //desde la hazard unit 
+    // Control etapa Decode - Via 1
+    input        RegWrite1D,
+    input        MemWrite1D,
+    input        Jump1D,
+    input        Branch1D,
+    input        ALUSrc1D,
+    input  [1:0] ResultSrc1D,
+    input  [1:0] ImmSrc1D,
+    input  [2:0] ALUControl1D,
+
+    // Senales desde la Hazard Unit
     input        StallF,
     input        StallD,
     input        FlushD,
     input        FlushE,
-    input  [1:0] ForwardAE,
-    input  [1:0] ForwardBE,
 
-    // Hacia el controller
-    output [6:0] op,
-    output [2:0] funct3,
-    output       funct7b5,
+    // Hacia los controladores (Decode)
+    output [6:0] op0,
+    output [2:0] funct3_0,
+    output       funct7b5_0,
 
-    // Hacia la Hazard Unit 
-    output [4:0] Rs1D,
-    output [4:0] Rs2D,
-    output reg [4:0] Rs1E,
-    output reg [4:0] Rs2E,
-    output reg [4:0] RdE,
-    output reg [4:0] RdM,
-    output reg [4:0] RdW,
+    output [6:0] op1,
+    output [2:0] funct3_1,
+    output       funct7b5_1,
+
+    // Hacia la Hazard Unit
+    output [4:0] Rs1_0D, Rs2_0D,
+    output [4:0] Rs1_1D, Rs2_1D,
+    output reg [4:0] Rs1_0E, Rs2_0E,
+    output reg [4:0] Rs1_1E, Rs2_1E,
+    output reg [4:0] Rd0E, Rd1E,
+    output reg [4:0] Rd0M, Rd1M,
+    output reg [4:0] Rd0W, Rd1W,
     output       PCSrcE,
-    output reg   RegWriteM,
-    output reg   RegWriteW,
-    output       ResultSrcE0,
+    output reg   RegWrite0M, RegWrite1M,
+    output reg   RegWrite0W, RegWrite1W,
+    output       ResultSrc0E0,
 
-    //  Instruction Memory 
+    // Memoria de Instrucciones (Dual Fetch)
     output [31:0] PCF,
-    input  [31:0] InstrF,
+    input  [31:0] Instr0F,
+    input  [31:0] Instr1F,
 
-    //   Data Memory  
-    output reg [31:0] ALUResultM,
-    output reg [31:0] WriteDataM,
-    output reg        MemWriteM,
-    input      [31:0] ReadDataM
+    // Memoria de Datos
+    output [31:0] ALUResultM,
+    output [31:0] WriteDataM,
+    output        MemWriteM,
+    input  [31:0] ReadDataM,
+
+    // Salidas de diagnostico / evidencia para simulacion
+    output reg [31:0] Instr0D, Instr1D,
+    output     [31:0] ALUResult0E, ALUResult1E,
+    output     [31:0] Result0W, Result1W
 );
 
- 
-    // DECLARACION DE SENALES
- 
-
-    //   Fetch  
+    // =========================================================================
+    // 1. FETCH (DUAL FETCH)
+    // =========================================================================
     wire [31:0] PCNextF;
-    wire [31:0] PCPlus4F;
+    wire [31:0] PCPlus8F;
     wire [31:0] PCTargetE;
     wire        PCEnable;
 
-    //   Registro IF/ID  
-    reg [31:0] InstrD;
-    reg [31:0] PCD;
-    reg [31:0] PCPlus4D;
-
-    //   Decode  
-    wire [31:0] RD1D;
-    wire [31:0] RD2D;
-    wire [31:0] ImmExtD;
-    wire [4:0]  RdD;
-
-    //   Registro ID/EX  
-    reg        RegWriteE;
-    reg        MemWriteE;
-    reg        JumpE;
-    reg        BranchE;
-    reg        ALUSrcE;
-    reg [1:0]  ResultSrcE;
-    reg [2:0]  ALUControlE;
-    reg [31:0] RD1E;
-    reg [31:0] RD2E;
-    reg [31:0] PCE;
-    reg [31:0] ImmExtE;
-    reg [31:0] PCPlus4E;
-
-    //   Execute  
-    wire [31:0] SrcAE;
-    wire [31:0] SrcBE;
-    wire [31:0] WriteDataE;
-    wire [31:0] ALUResultE;
-    wire        ZeroE;
-
-    //   Registro EX/MEM  
-    reg [1:0]  ResultSrcM;
-    reg [31:0] PCPlus4M;
-
-    //   Registro MEM/WB  
-    reg [1:0]  ResultSrcW;
-    reg [31:0] ALUResultW;
-    reg [31:0] ReadDataW;
-    reg [31:0] PCPlus4W;
-
-    //   Writeback  
-    wire [31:0] ResultW;
-
- 
-    // FETCH
- 
-
-    // PCEnable = 0 si StallF = 1 (congelar el PC)
+    // En Dual Fetch el PC avanza de 8 en 8 (dos instrucciones de 32 bits por ciclo)
+    assign PCPlus8F = PCF + 32'd8;
     assign PCEnable = !StallF;
 
-    // PC + 4
-    assign PCPlus4F = PCF + 32'd4;
-
-    // Elegir siguiente PC: 0 = PC+4, 1 = destino del salto
+    // Siguiente PC: PC+8 o direccion de salto
     mux2 #(32) pcmux(
-        .d0(PCPlus4F),
+        .d0(PCPlus8F),
         .d1(PCTargetE),
         .s(PCSrcE),
         .y(PCNextF)
     );
 
-    // Registro del PC (con enable)
+    // Registro de PC
     flopenr #(32) pcreg(
         .clk(clk),
         .reset(reset),
@@ -131,235 +96,238 @@ module datapath(
         .q(PCF)
     );
 
-
- 
-    // REGISTRO IF/ID
- 
+    // =========================================================================
+    // REGISTRO IF/ID (DUAL IF/ID)
+    // =========================================================================
+    reg [31:0] PC0D, PC1D;
+    reg [31:0] PCPlus8D;
 
     always @(posedge clk) begin
         if (reset || FlushD) begin
-            // Limpiar: se inserta un NOP (addi x0, x0, 0)
-            InstrD   <= 32'h00000013;
-            PCD      <= 32'b0;
-            PCPlus4D <= 32'b0;
+            // Insercion de NOPs (addi x0, x0, 0)
+            Instr0D  <= 32'h00000013;
+            Instr1D  <= 32'h00000013;
+            PC0D     <= 32'b0;
+            PC1D     <= 32'b0;
+            PCPlus8D <= 32'b0;
         end
         else if (!StallD) begin
-            // Avanzar normalmente
-            InstrD   <= InstrF;
-            PCD      <= PCF;
-            PCPlus4D <= PCPlus4F;
+            Instr0D  <= Instr0F;
+            Instr1D  <= Instr1F;
+            PC0D     <= PCF;
+            PC1D     <= PCF + 32'd4;
+            PCPlus8D <= PCPlus8F;
         end
-        // Si StallD = 1, se mantiene el valor anterior
     end
 
+    // =========================================================================
+    // 2. DECODE (DUAL DECODE)
+    // =========================================================================
+    // Descomposicion de Instruccion 0 (Via 0)
+    assign op0         = Instr0D[6:0];
+    assign funct3_0    = Instr0D[14:12];
+    assign funct7b5_0  = Instr0D[30];
+    assign Rs1_0D      = Instr0D[19:15];
+    assign Rs2_0D      = Instr0D[24:20];
+    wire [4:0] Rd0D    = Instr0D[11:7];
 
- 
-    //DECODE
- 
+    // Descomposicion de Instruccion 1 (Via 1)
+    assign op1         = Instr1D[6:0];
+    assign funct3_1    = Instr1D[14:12];
+    assign funct7b5_1  = Instr1D[30];
+    assign Rs1_1D      = Instr1D[19:15];
+    assign Rs2_1D      = Instr1D[24:20];
+    wire [4:0] Rd1D    = Instr1D[11:7];
 
-    // Separar los campos de la instruccion
-    assign op       = InstrD[6:0];
-    assign funct3   = InstrD[14:12];
-    assign funct7b5 = InstrD[30];
+    // Cables de datos del Banco de Registros (4 lecturas simultaneas)
+    wire [31:0] RD1_0D, RD2_0D;
+    wire [31:0] RD1_1D, RD2_1D;
 
-    assign Rs1D = InstrD[19:15];
-    assign Rs2D = InstrD[24:20];
-    assign RdD  = InstrD[11:7];
-
-    // Banco de registros
-    // Lee con Rs1D y Rs2D (etapa D)
-    // Escribe con RdW, ResultW y RegWriteW (etapa W)
-    // IMPORTANTE: el regfile debe escribir en negedge clk
+    // Banco de Registros 4R / 2W
     regfile rf(
         .clk(clk),
-        .we3(RegWriteW),
-        .a1(Rs1D),
-        .a2(Rs2D),
-        .a3(RdW),
-        .wd3(ResultW),
-        .rd1(RD1D),
-        .rd2(RD2D)
+        // Escritura Via 0
+        .we3_0(RegWrite0W),
+        .a3_0(Rd0W),
+        .wd3_0(Result0W),
+        // Escritura Via 1
+        .we3_1(RegWrite1W),
+        .a3_1(Rd1W),
+        .wd3_1(Result1W),
+        // Lectura Via 0
+        .a1_0(Rs1_0D),
+        .a2_0(Rs2_0D),
+        .rd1_0(RD1_0D),
+        .rd2_0(RD2_0D),
+        // Lectura Via 1
+        .a1_1(Rs1_1D),
+        .a2_1(Rs2_1D),
+        .rd1_1(RD1_1D),
+        .rd2_1(RD2_1D)
     );
 
-    // Extension del inmediato
-    extend ext(
-        .instr(InstrD[31:7]),
-        .immsrc(ImmSrcD),
-        .immext(ImmExtD)
-    );
+    // Extension de inmediatos para ambas vias
+    wire [31:0] ImmExt0D, ImmExt1D;
+    extend ext0(.instr(Instr0D[31:7]), .immsrc(ImmSrc0D), .immext(ImmExt0D));
+    extend ext1(.instr(Instr1D[31:7]), .immsrc(ImmSrc1D), .immext(ImmExt1D));
 
+    // =========================================================================
+    // REGISTRO ID/EX (DUAL ID/EX)
+    // =========================================================================
+    // Via 0
+    reg        RegWrite0E, MemWrite0E, Jump0E, Branch0E, ALUSrc0E;
+    reg [1:0]  ResultSrc0E;
+    reg [2:0]  ALUControl0E;
+    reg [31:0] RD1_0E, RD2_0E, PC0E, ImmExt0E;
 
-     // REGISTRO ID/EX
-   
+    // Via 1
+    reg        RegWrite1E, MemWrite1E, Jump1E, Branch1E, ALUSrc1E;
+    reg [1:0]  ResultSrc1E;
+    reg [2:0]  ALUControl1E;
+    reg [31:0] RD1_1E, RD2_1E, PC1E, ImmExt1E;
 
     always @(posedge clk) begin
         if (reset || FlushE) begin
-            // Limpiar todo (osea burbuja)
-            RegWriteE   <= 1'b0;
-            MemWriteE   <= 1'b0;
-            JumpE       <= 1'b0;
-            BranchE     <= 1'b0;
-            ALUSrcE     <= 1'b0;
-            ResultSrcE  <= 2'b00;
-            ALUControlE <= 3'b000;
+            // Limpiar ambas vias
+            RegWrite0E   <= 1'b0; MemWrite0E <= 1'b0; Jump0E <= 1'b0; Branch0E <= 1'b0;
+            ALUSrc0E     <= 1'b0; ResultSrc0E <= 2'b00; ALUControl0E <= 3'b000;
+            RD1_0E       <= 32'b0; RD2_0E <= 32'b0; PC0E <= 32'b0; ImmExt0E <= 32'b0;
+            Rs1_0E       <= 5'b0; Rs2_0E <= 5'b0; Rd0E <= 5'b0;
 
-            RD1E        <= 32'b0;
-            RD2E        <= 32'b0;
-            PCE         <= 32'b0;
-            ImmExtE     <= 32'b0;
-            PCPlus4E    <= 32'b0;
-
-            Rs1E        <= 5'b0;
-            Rs2E        <= 5'b0;
-            RdE         <= 5'b0;
+            RegWrite1E   <= 1'b0; MemWrite1E <= 1'b0; Jump1E <= 1'b0; Branch1E <= 1'b0;
+            ALUSrc1E     <= 1'b0; ResultSrc1E <= 2'b00; ALUControl1E <= 3'b000;
+            RD1_1E       <= 32'b0; RD2_1E <= 32'b0; PC1E <= 32'b0; ImmExt1E <= 32'b0;
+            Rs1_1E       <= 5'b0; Rs2_1E <= 5'b0; Rd1E <= 5'b0;
         end
         else begin
-            // Pasar las senales de control
-            RegWriteE   <= RegWriteD;
-            MemWriteE   <= MemWriteD;
-            JumpE       <= JumpD;
-            BranchE     <= BranchD;
-            ALUSrcE     <= ALUSrcD;
-            ResultSrcE  <= ResultSrcD;
-            ALUControlE <= ALUControlD;
+            // Avanzar Via 0
+            RegWrite0E   <= RegWrite0D; MemWrite0E <= MemWrite0D;
+            Jump0E       <= Jump0D;     Branch0E   <= Branch0D;
+            ALUSrc0E     <= ALUSrc0D;   ResultSrc0E <= ResultSrc0D;
+            ALUControl0E <= ALUControl0D;
+            RD1_0E       <= RD1_0D;     RD2_0E     <= RD2_0D;
+            PC0E         <= PC0D;       ImmExt0E   <= ImmExt0D;
+            Rs1_0E       <= Rs1_0D;     Rs2_0E     <= Rs2_0D;     Rd0E <= Rd0D;
 
-            // Pasar los datos
-            RD1E        <= RD1D;
-            RD2E        <= RD2D;
-            PCE         <= PCD;
-            ImmExtE     <= ImmExtD;
-            PCPlus4E    <= PCPlus4D;
-
-            // Pasar los numeros de registro
-            Rs1E        <= Rs1D;
-            Rs2E        <= Rs2D;
-            RdE         <= RdD;
+            // Avanzar Via 1
+            RegWrite1E   <= RegWrite1D; MemWrite1E <= MemWrite1D;
+            Jump1E       <= Jump1D;     Branch1E   <= Branch1D;
+            ALUSrc1E     <= ALUSrc1D;   ResultSrc1E <= ResultSrc1D;
+            ALUControl1E <= ALUControl1D;
+            RD1_1E       <= RD1_1D;     RD2_1E     <= RD2_1D;
+            PC1E         <= PC1D;       ImmExt1E   <= ImmExt1D;
+            Rs1_1E       <= Rs1_1D;     Rs2_1E     <= Rs2_1D;     Rd1E <= Rd1D;
         end
     end
 
-    // Bit 0 de ResultSrcE: indica que la instruccion es un lw
-    assign ResultSrcE0 = ResultSrcE[0];
+    assign ResultSrc0E0 = ResultSrc0E[0];
 
+    // =========================================================================
+    // 3. EXECUTE (DATAPATH DUAL-ISSUE CON DOS ALUs EN PARALELO)
+    // =========================================================================
+    // Operandos Via 0
+    wire [31:0] SrcA0E = RD1_0E;
+    wire [31:0] SrcB0E = ALUSrc0E ? ImmExt0E : RD2_0E;
+    wire        Zero0E;
 
-     //EXECUTE
- 
-
-    // Forwarding para el operando A
-    // 00 = RD1E, 01 = ResultW, 10 = ALUResultM
-    mux3 #(32) fwdA(
-        .d0(RD1E),
-        .d1(ResultW),
-        .d2(ALUResultM),
-        .s(ForwardAE),
-        .y(SrcAE)
+    alu alu0(
+        .a(SrcA0E),
+        .b(SrcB0E),
+        .alucontrol(ALUControl0E),
+        .result(ALUResult0E),
+        .zero(Zero0E)
     );
 
-    // Forwarding para el operando B
-    // (tambien es el dato que se guarda en un sw)
-    mux3 #(32) fwdB(
-        .d0(RD2E),
-        .d1(ResultW),
-        .d2(ALUResultM),
-        .s(ForwardBE),
-        .y(WriteDataE)
+    // Operandos Via 1
+    wire [31:0] SrcA1E = RD1_1E;
+    wire [31:0] SrcB1E = ALUSrc1E ? ImmExt1E : RD2_1E;
+    wire        Zero1E;
+
+    alu alu1(
+        .a(SrcA1E),
+        .b(SrcB1E),
+        .alucontrol(ALUControl1E),
+        .result(ALUResult1E),
+        .zero(Zero1E)
     );
 
-    // Elegir entre registro o inmediato para la ALU
-    // 0 = WriteDataE, 1 = ImmExtE
-    mux2 #(32) srcbmux(
-        .d0(WriteDataE),
-        .d1(ImmExtE),
-        .s(ALUSrcE),
-        .y(SrcBE)
-    );
+    // Salto condicional o incondicional (calculado en Via 0)
+    assign PCTargetE = PC0E + ImmExt0E;
+    assign PCSrcE    = (Branch0E && Zero0E) || Jump0E;
 
-    // ALU
-    alu alu_inst(
-        .a(SrcAE),
-        .b(SrcBE),
-        .alucontrol(ALUControlE),
-        .result(ALUResultE),
-        .zero(ZeroE)
-    );
-
-    // Destino del salto
-    assign PCTargetE = PCE + ImmExtE;
-
-    // Se toma el salto si es branch con Zero, o si es jump
-    assign PCSrcE = (BranchE && ZeroE) || JumpE;
-
-
-    //REGISTRO EX/MEM
- 
+    // =========================================================================
+    // REGISTRO EX/MEM (DUAL EX/MEM)
+    // =========================================================================
+    reg [1:0]  ResultSrc0M, ResultSrc1M;
+    reg [31:0] ALUResult0M, ALUResult1M;
+    reg [31:0] WriteData0M;
+    reg [31:0] PC0M, PC1M;
 
     always @(posedge clk) begin
         if (reset) begin
-            RegWriteM  <= 1'b0;
-            MemWriteM  <= 1'b0;
-            ResultSrcM <= 2'b00;
+            RegWrite0M  <= 1'b0; MemWrite0M <= 1'b0; ResultSrc0M <= 2'b00;
+            ALUResult0M <= 32'b0; WriteData0M <= 32'b0; Rd0M <= 5'b0; PC0M <= 32'b0;
 
-            ALUResultM <= 32'b0;
-            WriteDataM <= 32'b0;
-            PCPlus4M   <= 32'b0;
-
-            RdM        <= 5'b0;
+            RegWrite1M  <= 1'b0; ResultSrc1M <= 2'b00;
+            ALUResult1M <= 32'b0; Rd1M <= 5'b0; PC1M <= 32'b0;
         end
         else begin
-            RegWriteM  <= RegWriteE;
-            MemWriteM  <= MemWriteE;
-            ResultSrcM <= ResultSrcE;
+            RegWrite0M  <= RegWrite0E; MemWrite0M <= MemWrite0E; ResultSrc0M <= ResultSrc0E;
+            ALUResult0M <= ALUResult0E; WriteData0M <= RD2_0E; Rd0M <= Rd0E; PC0M <= PC0E;
 
-            ALUResultM <= ALUResultE;
-            WriteDataM <= WriteDataE;
-            PCPlus4M   <= PCPlus4E;
-
-            RdM        <= RdE;
+            RegWrite1M  <= RegWrite1E; ResultSrc1M <= ResultSrc1E;
+            ALUResult1M <= ALUResult1E; Rd1M <= Rd1E; PC1M <= PC1E;
         end
     end
 
- 
-    // MEMORY
- 
+    // =========================================================================
+    // 4. MEMORY (ACCESO A MEMORIA DE DATOS EN VIA 0)
+    // =========================================================================
+    assign ALUResultM = ALUResult0M;
+    assign WriteDataM = WriteData0M;
+    assign MemWriteM  = MemWrite0M;
 
-
-    
-    // REGISTRO MEM/WB
-     
+    // =========================================================================
+    // REGISTRO MEM/WB (DUAL MEM/WB)
+    // =========================================================================
+    reg [1:0]  ResultSrc0W, ResultSrc1W;
+    reg [31:0] ALUResult0W, ALUResult1W;
+    reg [31:0] ReadData0W;
+    reg [31:0] PC0W, PC1W;
 
     always @(posedge clk) begin
         if (reset) begin
-            RegWriteW  <= 1'b0;
-            ResultSrcW <= 2'b00;
+            RegWrite0W  <= 1'b0; ResultSrc0W <= 2'b00;
+            ALUResult0W <= 32'b0; ReadData0W <= 32'b0; Rd0W <= 5'b0; PC0W <= 32'b0;
 
-            ALUResultW <= 32'b0;
-            ReadDataW  <= 32'b0;
-            PCPlus4W   <= 32'b0;
-
-            RdW        <= 5'b0;
+            RegWrite1W  <= 1'b0; ResultSrc1W <= 2'b00;
+            ALUResult1W <= 32'b0; Rd1W <= 5'b0; PC1W <= 32'b0;
         end
         else begin
-            RegWriteW  <= RegWriteM;
-            ResultSrcW <= ResultSrcM;
+            RegWrite0W  <= RegWrite0M; ResultSrc0W <= ResultSrc0M;
+            ALUResult0W <= ALUResult0M; ReadData0W <= ReadDataM; Rd0W <= Rd0M; PC0W <= PC0M;
 
-            ALUResultW <= ALUResultM;
-            ReadDataW  <= ReadDataM;
-            PCPlus4W   <= PCPlus4M;
-
-            RdW        <= RdM;
+            RegWrite1W  <= RegWrite1M; ResultSrc1W <= ResultSrc1M;
+            ALUResult1W <= ALUResult1M; Rd1W <= Rd1M; PC1W <= PC1M;
         end
     end
 
+    // =========================================================================
+    // 5. WRITEBACK (DUAL WRITEBACK CON 2 ESCRITURAS SIMULTANEAS)
+    // =========================================================================
+    mux3 #(32) resmux0(
+        .d0(ALUResult0W),
+        .d1(ReadData0W),
+        .d2(PC0W + 32'd4),
+        .s(ResultSrc0W),
+        .y(Result0W)
+    );
 
- 
-    //WRITEBACK
-  
-
-    mux3 #(32) resmux(
-        .d0(ALUResultW),
-        .d1(ReadDataW),
-        .d2(PCPlus4W),
-        .s(ResultSrcW),
-        .y(ResultW)
+    mux2 #(32) resmux1(
+        .d0(ALUResult1W),
+        .d1(PC1W + 32'd4),
+        .s(ResultSrc1W[1]),
+        .y(Result1W)
     );
 
 endmodule
