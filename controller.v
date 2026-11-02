@@ -8,7 +8,6 @@ module controller(
     output       ALUSrc,
     output       RegWrite,
     output       Jump,
-    output       JumpReg,
     output       Branch,
     output [1:0] ImmSrc,
     output [2:0] ALUControl
@@ -24,7 +23,6 @@ module controller(
         .ALUSrc(ALUSrc),
         .RegWrite(RegWrite),
         .Jump(Jump),
-        .JumpReg(JumpReg),
         .ImmSrc(ImmSrc),
         .ALUOp(ALUOp)
     );

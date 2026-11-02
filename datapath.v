@@ -6,7 +6,6 @@ module datapath(
     input        RegWriteD,
     input        MemWriteD,
     input        JumpD,
-    input        JumpRegD,
     input        BranchD,
     input        ALUSrcD,
     input  [1:0] ResultSrcD,
@@ -75,7 +74,6 @@ module datapath(
     reg        RegWriteE;
     reg        MemWriteE;
     reg        JumpE;
-    reg        JumpRegE;
     reg        BranchE;
     reg        ALUSrcE;
     reg [1:0]  ResultSrcE;
@@ -200,7 +198,6 @@ module datapath(
             RegWriteE   <= 1'b0;
             MemWriteE   <= 1'b0;
             JumpE       <= 1'b0;
-            JumpRegE    <= 1'b0;
             BranchE     <= 1'b0;
             ALUSrcE     <= 1'b0;
             ResultSrcE  <= 2'b00;
@@ -221,7 +218,6 @@ module datapath(
             RegWriteE   <= RegWriteD;
             MemWriteE   <= MemWriteD;
             JumpE       <= JumpD;
-            JumpRegE    <= JumpRegD;
             BranchE     <= BranchD;
             ALUSrcE     <= ALUSrcD;
             ResultSrcE  <= ResultSrcD;
@@ -287,10 +283,7 @@ module datapath(
     );
 
     // Destino del salto
-    // Para branch y jal la base es PCE; para jalr es SrcAE
-    wire [31:0] PCTargetBaseE;
-    assign PCTargetBaseE = JumpRegE ? SrcAE : PCE;
-    assign PCTargetE = (PCTargetBaseE + ImmExtE) & ~32'b1;
+    assign PCTargetE = PCE + ImmExtE;
 
     // Se toma el salto si es branch con Zero, o si es jump
     assign PCSrcE = (BranchE && ZeroE) || JumpE;
