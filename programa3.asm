@@ -17,7 +17,7 @@ sub  x4, x3, x1          # x4 = 12 (forwarding MEM -> A)
 
 #   Segundo Load-Use: stall obligatorio
 lw   x5, 0(x0)           # x5 = 12
-addi x6, x5, 3           # x6 = 15 (usa x5 inmediatamente: 1 stall)
+add  x6, x1, x5          # x6 = 24 (x5 llega por Rs2)
 add  x7, x6, x3          # x7 = 39 (forwarding MEM -> A)
 
 #   Marca de fin: el testbench espera esta escritura
