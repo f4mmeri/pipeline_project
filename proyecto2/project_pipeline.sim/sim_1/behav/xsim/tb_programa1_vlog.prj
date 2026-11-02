@@ -1,0 +1,24 @@
+# compile verilog/system verilog design source files
+verilog xil_defaultlib  --include "../../../../../../../AMDDesignTools/2026.1/Vivado/data/rsb/busdef" \
+"../../../../../OneDrive/Desktop/arqui/pipeline_proyect/alu.v" \
+"../../../../../OneDrive/Desktop/arqui/pipeline_proyect/aludec.v" \
+"../../../../../OneDrive/Desktop/arqui/pipeline_proyect/controller.v" \
+"../../../../../OneDrive/Desktop/arqui/pipeline_proyect/datapath.v" \
+"../../../../../OneDrive/Desktop/arqui/pipeline_proyect/dmem.v" \
+"../../../../../OneDrive/Desktop/arqui/pipeline_proyect/extend.v" \
+"../../../../../OneDrive/Desktop/arqui/pipeline_proyect/flopenr.v" \
+"../../../../../OneDrive/Desktop/arqui/pipeline_proyect/hazard.v" \
+"../../../../../OneDrive/Desktop/arqui/pipeline_proyect/imem.v" \
+"../../../../../OneDrive/Desktop/arqui/pipeline_proyect/maindec.v" \
+"../../../../../OneDrive/Desktop/arqui/pipeline_proyect/mux2.v" \
+"../../../../../OneDrive/Desktop/arqui/pipeline_proyect/mux3.v" \
+"../../../../../OneDrive/Desktop/arqui/pipeline_proyect/regfile.v" \
+"../../../../../OneDrive/Desktop/arqui/pipeline_proyect/riscvpipeline.v" \
+"../../../../../OneDrive/Desktop/arqui/pipeline_proyect/top.v" \
+"../../../../../OneDrive/Desktop/arqui/pipeline_proyect/tb_programa1.v" \
+
+# compile glbl module
+verilog xil_defaultlib "glbl.v"
+
+# Do not sort compile order
+nosort

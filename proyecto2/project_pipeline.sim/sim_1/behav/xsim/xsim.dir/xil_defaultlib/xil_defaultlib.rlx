@@ -1,0 +1,21 @@
+0.7
+2020.2
+Jun 16 2026
+11:10:11
+C:/Users/ameri/OneDrive/Desktop/arqui/pipeline_proyect/alu.v,1793509755,verilog,,C:/Users/ameri/OneDrive/Desktop/arqui/pipeline_proyect/aludec.v,,alu,,,../../../../../../../AMDDesignTools/2026.1/Vivado/data/rsb/busdef,,,,,
+C:/Users/ameri/OneDrive/Desktop/arqui/pipeline_proyect/aludec.v,1793509673,verilog,,C:/Users/ameri/OneDrive/Desktop/arqui/pipeline_proyect/controller.v,,aludec,,,../../../../../../../AMDDesignTools/2026.1/Vivado/data/rsb/busdef,,,,,
+C:/Users/ameri/OneDrive/Desktop/arqui/pipeline_proyect/controller.v,1793583577,verilog,,C:/Users/ameri/OneDrive/Desktop/arqui/pipeline_proyect/datapath.v,,controller,,,../../../../../../../AMDDesignTools/2026.1/Vivado/data/rsb/busdef,,,,,
+C:/Users/ameri/OneDrive/Desktop/arqui/pipeline_proyect/datapath.v,1793583727,verilog,,C:/Users/ameri/OneDrive/Desktop/arqui/pipeline_proyect/dmem.v,,datapath,,,../../../../../../../AMDDesignTools/2026.1/Vivado/data/rsb/busdef,,,,,
+C:/Users/ameri/OneDrive/Desktop/arqui/pipeline_proyect/dmem.v,1793473214,verilog,,C:/Users/ameri/OneDrive/Desktop/arqui/pipeline_proyect/extend.v,,dmem,,,../../../../../../../AMDDesignTools/2026.1/Vivado/data/rsb/busdef,,,,,
+C:/Users/ameri/OneDrive/Desktop/arqui/pipeline_proyect/extend.v,1793473214,verilog,,C:/Users/ameri/OneDrive/Desktop/arqui/pipeline_proyect/flopenr.v,,extend,,,../../../../../../../AMDDesignTools/2026.1/Vivado/data/rsb/busdef,,,,,
+C:/Users/ameri/OneDrive/Desktop/arqui/pipeline_proyect/flopenr.v,1793488435,verilog,,C:/Users/ameri/OneDrive/Desktop/arqui/pipeline_proyect/hazard.v,,flopenr,,,../../../../../../../AMDDesignTools/2026.1/Vivado/data/rsb/busdef,,,,,
+C:/Users/ameri/OneDrive/Desktop/arqui/pipeline_proyect/hazard.v,1793507925,verilog,,C:/Users/ameri/OneDrive/Desktop/arqui/pipeline_proyect/imem.v,,hazard,,,../../../../../../../AMDDesignTools/2026.1/Vivado/data/rsb/busdef,,,,,
+C:/Users/ameri/OneDrive/Desktop/arqui/pipeline_proyect/imem.v,1793629082,verilog,,C:/Users/ameri/OneDrive/Desktop/arqui/pipeline_proyect/maindec.v,,imem,,,../../../../../../../AMDDesignTools/2026.1/Vivado/data/rsb/busdef,,,,,
+C:/Users/ameri/OneDrive/Desktop/arqui/pipeline_proyect/maindec.v,1793583447,verilog,,C:/Users/ameri/OneDrive/Desktop/arqui/pipeline_proyect/mux2.v,,maindec,,,../../../../../../../AMDDesignTools/2026.1/Vivado/data/rsb/busdef,,,,,
+C:/Users/ameri/OneDrive/Desktop/arqui/pipeline_proyect/mux2.v,1793473214,verilog,,C:/Users/ameri/OneDrive/Desktop/arqui/pipeline_proyect/mux3.v,,mux2,,,../../../../../../../AMDDesignTools/2026.1/Vivado/data/rsb/busdef,,,,,
+C:/Users/ameri/OneDrive/Desktop/arqui/pipeline_proyect/mux3.v,1793473214,verilog,,C:/Users/ameri/OneDrive/Desktop/arqui/pipeline_proyect/regfile.v,,mux3,,,../../../../../../../AMDDesignTools/2026.1/Vivado/data/rsb/busdef,,,,,
+C:/Users/ameri/OneDrive/Desktop/arqui/pipeline_proyect/regfile.v,1793487483,verilog,,C:/Users/ameri/OneDrive/Desktop/arqui/pipeline_proyect/riscvpipeline.v,,regfile,,,../../../../../../../AMDDesignTools/2026.1/Vivado/data/rsb/busdef,,,,,
+C:/Users/ameri/OneDrive/Desktop/arqui/pipeline_proyect/riscvpipeline.v,1793583636,verilog,,C:/Users/ameri/OneDrive/Desktop/arqui/pipeline_proyect/top.v,,riscvpipeline,,,../../../../../../../AMDDesignTools/2026.1/Vivado/data/rsb/busdef,,,,,
+C:/Users/ameri/OneDrive/Desktop/arqui/pipeline_proyect/tb_programa1.v,1793584284,verilog,,,,tb_programa1,,,../../../../../../../AMDDesignTools/2026.1/Vivado/data/rsb/busdef,,,,,
+C:/Users/ameri/OneDrive/Desktop/arqui/pipeline_proyect/top.v,1793507973,verilog,,C:/Users/ameri/OneDrive/Desktop/arqui/pipeline_proyect/tb_programa1.v,,top,,,../../../../../../../AMDDesignTools/2026.1/Vivado/data/rsb/busdef,,,,,
+C:/Users/ameri/project_pipeline/project_pipeline.sim/sim_1/behav/xsim/glbl.v,1773749341,verilog,,,,glbl,,,,,,,,

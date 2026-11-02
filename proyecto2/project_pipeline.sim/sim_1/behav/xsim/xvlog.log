@@ -1,0 +1,36 @@
+INFO: [VRFC 10-2263] Analyzing Verilog file "C:/Users/ameri/OneDrive/Desktop/arqui/pipeline_proyect/alu.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module alu
+INFO: [VRFC 10-2263] Analyzing Verilog file "C:/Users/ameri/OneDrive/Desktop/arqui/pipeline_proyect/aludec.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module aludec
+INFO: [VRFC 10-2263] Analyzing Verilog file "C:/Users/ameri/OneDrive/Desktop/arqui/pipeline_proyect/controller.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module controller
+INFO: [VRFC 10-2263] Analyzing Verilog file "C:/Users/ameri/OneDrive/Desktop/arqui/pipeline_proyect/datapath.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module datapath
+INFO: [VRFC 10-2263] Analyzing Verilog file "C:/Users/ameri/OneDrive/Desktop/arqui/pipeline_proyect/dmem.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module dmem
+INFO: [VRFC 10-2263] Analyzing Verilog file "C:/Users/ameri/OneDrive/Desktop/arqui/pipeline_proyect/extend.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module extend
+INFO: [VRFC 10-2263] Analyzing Verilog file "C:/Users/ameri/OneDrive/Desktop/arqui/pipeline_proyect/flopenr.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module flopenr
+INFO: [VRFC 10-2263] Analyzing Verilog file "C:/Users/ameri/OneDrive/Desktop/arqui/pipeline_proyect/hazard.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module hazard
+INFO: [VRFC 10-2263] Analyzing Verilog file "C:/Users/ameri/OneDrive/Desktop/arqui/pipeline_proyect/imem.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module imem
+INFO: [VRFC 10-2263] Analyzing Verilog file "C:/Users/ameri/OneDrive/Desktop/arqui/pipeline_proyect/maindec.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module maindec
+INFO: [VRFC 10-2263] Analyzing Verilog file "C:/Users/ameri/OneDrive/Desktop/arqui/pipeline_proyect/mux2.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module mux2
+WARNING: [VRFC 10-3380] identifier 'WIDTH' is used before its declaration [C:/Users/ameri/OneDrive/Desktop/arqui/pipeline_proyect/mux2.v:1]
+WARNING: [VRFC 10-3380] identifier 'WIDTH' is used before its declaration [C:/Users/ameri/OneDrive/Desktop/arqui/pipeline_proyect/mux2.v:3]
+INFO: [VRFC 10-2263] Analyzing Verilog file "C:/Users/ameri/OneDrive/Desktop/arqui/pipeline_proyect/mux3.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module mux3
+WARNING: [VRFC 10-3380] identifier 'WIDTH' is used before its declaration [C:/Users/ameri/OneDrive/Desktop/arqui/pipeline_proyect/mux3.v:1]
+WARNING: [VRFC 10-3380] identifier 'WIDTH' is used before its declaration [C:/Users/ameri/OneDrive/Desktop/arqui/pipeline_proyect/mux3.v:3]
+INFO: [VRFC 10-2263] Analyzing Verilog file "C:/Users/ameri/OneDrive/Desktop/arqui/pipeline_proyect/regfile.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module regfile
+INFO: [VRFC 10-2263] Analyzing Verilog file "C:/Users/ameri/OneDrive/Desktop/arqui/pipeline_proyect/riscvpipeline.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module riscvpipeline
+INFO: [VRFC 10-2263] Analyzing Verilog file "C:/Users/ameri/OneDrive/Desktop/arqui/pipeline_proyect/top.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module top
+INFO: [VRFC 10-2263] Analyzing Verilog file "C:/Users/ameri/OneDrive/Desktop/arqui/pipeline_proyect/tb_programa1.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module tb_programa1
