@@ -1,4 +1,3 @@
-
 module tb_programa1;
 
     reg         clk;
