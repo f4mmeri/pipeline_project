@@ -262,6 +262,7 @@ module datapath(
     reg [31:0] ALUResult0M, ALUResult1M;
     reg [31:0] WriteData0M;
     reg [31:0] PC0M, PC1M;
+    reg        MemWrite0M;   // DECLARACION: senal de escritura en memoria Via 0
 
     always @(posedge clk) begin
         if (reset) begin
