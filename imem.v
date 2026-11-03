@@ -5,7 +5,7 @@ module imem(input  [31:0] a,
   reg [31:0] RAM[63:0]; 
 
   initial begin
-      $readmemh("C:/Users/ameri/OneDrive/Desktop/arqui/pipeline_proyect/programa_dual.mem", RAM); 
+              $readmemh("pipeline_proyect/programa_dual.mem", RAM); 
   end
 
   // DUAL FETCH: se leen dos instrucciones contiguas de 32 bits simultaneamente
