@@ -34,7 +34,7 @@ module riscvpipeline(
     wire [2:0] ALUControl1D;
 
     // =========================================================================
-    // SENALES DATAPATH <-> HAZARD UNIT
+    // SENALES DATAPATH <-> HAZARD UNIT & ISSUE UNIT
     // =========================================================================
     wire [4:0] Rs1_0D, Rs2_0D, Rs1_1D, Rs2_1D;
     wire [4:0] Rs1_0E, Rs2_0E, Rs1_1E, Rs2_1E;
@@ -80,40 +80,52 @@ module riscvpipeline(
     );
 
     // =========================================================================
-    // HAZARD UNIT ADAPTADA A DUAL-ISSUE
+    // ISSUE UNIT + HAZARD UNIT
     // =========================================================================
+    wire [31:0] Instr0D, Instr1D;
+    wire Valid0D, Valid1D;
+    wire Issue0, Issue1, HoldYounger;
+    wire StallOld, StallYoung;
+    wire PairRAW, PairStructural, PairWAW, PairControl;
+    wire Load0E, Load1E;
+
+    issue_unit iu(
+        .Instr0D(Instr0D),
+        .Instr1D(Instr1D),
+        .Valid0D(Valid0D),
+        .Valid1D(Valid1D),
+        .StallOld(StallOld),
+        .StallYoung(StallYoung),
+        .Issue0(Issue0),
+        .Issue1(Issue1),
+        .HoldYounger(HoldYounger),
+        .PairRAW(PairRAW),
+        .PairStructural(PairStructural),
+        .PairWAW(PairWAW),
+        .PairControl(PairControl)
+    );
+
     hazard hz(
-        .Rs1_0D(Rs1_0D),
-        .Rs2_0D(Rs2_0D),
-        .Rs1_0E(Rs1_0E),
-        .Rs2_0E(Rs2_0E),
+        .Instr0D(Instr0D),
+        .Instr1D(Instr1D),
+        .Valid0D(Valid0D),
+        .Valid1D(Valid1D),
         .Rd0E(Rd0E),
-        .Rd0M(Rd0M),
-        .Rd0W(Rd0W),
-
-        .Rs1_1D(Rs1_1D),
-        .Rs2_1D(Rs2_1D),
-        .Rs1_1E(Rs1_1E),
-        .Rs2_1E(Rs2_1E),
         .Rd1E(Rd1E),
-        .Rd1M(Rd1M),
-        .Rd1W(Rd1W),
-
-        .RegWrite0M(RegWrite0M),
-        .RegWrite1M(RegWrite1M),
-        .RegWrite0W(RegWrite0W),
-        .RegWrite1W(RegWrite1W),
-        .ResultSrc0E0(ResultSrc0E0),
+        .Load0E(Load0E),
+        .Load1E(Load1E),
         .PCSrcE(PCSrcE),
-
-        .StallF(StallF),
-        .StallD(StallD),
+        .StallOld(StallOld),
+        .StallYoung(StallYoung),
         .FlushD(FlushD),
         .FlushE(FlushE)
     );
 
+    assign StallF = StallOld;
+    assign StallD = StallOld;
+
     // =========================================================================
-    // DATAPATH DUAL-ISSUE PRELIMINAR
+    // DATAPATH DUAL-ISSUE COMPLETO
     // =========================================================================
     datapath dp(
         .clk(clk),
@@ -138,6 +150,15 @@ module riscvpipeline(
         .ResultSrc1D(ResultSrc1D),
         .ImmSrc1D(ImmSrc1D),
         .ALUControl1D(ALUControl1D),
+
+        // Decisiones de emision (ambas vias, PC, IF/ID e ID/EX)
+        .Issue0(Issue0),
+        .Issue1(Issue1),
+        .HoldYounger(HoldYounger),
+        .Valid0D(Valid0D),
+        .Valid1D(Valid1D),
+        .Load0E(Load0E),
+        .Load1E(Load1E),
 
         // Hazards
         .StallF(StallF),
@@ -186,9 +207,9 @@ module riscvpipeline(
         .MemWriteM(MemWrite),
         .ReadDataM(ReadData),
 
-        // Senales de diagnostico (opcionales)
-        .Instr0D(),
-        .Instr1D(),
+        // Senales de diagnostico / simulacion
+        .Instr0D(Instr0D),
+        .Instr1D(Instr1D),
         .ALUResult0E(),
         .ALUResult1E(),
         .Result0W(),

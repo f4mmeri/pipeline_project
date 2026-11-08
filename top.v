@@ -25,7 +25,7 @@ module top(input  clk, reset,
     .rd1(Instr1)
   ); 
 
-  // Memoria de datos (conectada a la Via 0)
+  // Memoria de datos compartida por ambas vias (seleccion en datapath)
   dmem dmem(
     .clk(clk), 
     .we(MemWrite), 

@@ -1,15 +1,18 @@
-module imem(input  [31:0] a,
-            output [31:0] rd0,
-            output [31:0] rd1);
-  
-  reg [31:0] RAM[63:0]; 
+module imem(
+    input  [31:0] a,
+    output [31:0] rd0, rd1
+);
+    reg [31:0] RAM[0:255];
+    integer i;
+ 
 
-  initial begin
-      $readmemh("C:/Users/ameri/OneDrive/Desktop/arqui/pipeline_proyect/programa_dual.mem", RAM); 
-  end
+    initial begin
+        for (i = 0; i < 256; i = i + 1)
+            RAM[i] = 32'h00000013; // NOP = addi x0,x0,0
+        $readmemh("programa_e2.mem", RAM);
+    end
 
-  // DUAL FETCH: se leen dos instrucciones contiguas de 32 bits simultaneamente
-  assign rd0 = RAM[a[31:2]];         // Instruccion 0 (Via 0, direccion PC)
-  assign rd1 = RAM[a[31:2] + 1'b1];  // Instruccion 1 (Via 1, direccion PC + 4)
-
+    // PCF = siguiente instruccion no almacenada en IF/ID.
+    assign rd0 = RAM[a[9:2]];
+    assign rd1 = RAM[a[9:2] + 8'd1];
 endmodule
