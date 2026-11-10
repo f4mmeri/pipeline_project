@@ -27,7 +27,7 @@ module regfile(
         end
     end
 
-    // Lecturas asincronas con bypass de WB (expresion explicita directa)
+    // Lecturas asincronas con bypass de WB  
     assign rd1_0 = (a1_0 == 5'd0) ? 32'b0 :
                    (!reset && we3_1 && (a3_1 == a1_0) && (a3_1 != 5'd0)) ? wd3_1 :
                    (!reset && we3_0 && (a3_0 == a1_0) && (a3_0 != 5'd0)) ? wd3_0 : rf[a1_0];

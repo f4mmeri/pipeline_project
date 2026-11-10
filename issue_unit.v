@@ -62,4 +62,3 @@ module issue_unit(
     assign HoldYounger = Issue0 && Valid1D && !Issue1;
 
 endmodule
-
