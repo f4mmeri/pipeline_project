@@ -1,12 +1,17 @@
 module dmem(input  clk, we,
             input  [31:0] a, wd,
             output [31:0] rd);
-  
-  reg [31:0] RAM[63:0]; 
+
+  reg [31:0] RAM[0:511];   // 2 KB: cubre hasta la dirección 2047
+  integer i;
+
+  initial begin
+    for (i = 0; i < 512; i = i + 1) RAM[i] = 32'b0;
+  end
 
   assign rd = RAM[a[31:2]]; // word aligned
 
-  always @(posedge clk) begin 
-    if (we) RAM[a[31:2]] <= wd; 
+  always @(posedge clk) begin
+    if (we) RAM[a[31:2]] <= wd;
   end
 endmodule
