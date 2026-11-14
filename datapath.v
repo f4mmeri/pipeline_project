@@ -6,6 +6,7 @@ module datapath(
     input        RegWrite0D,
     input        MemWrite0D,
     input        Jump0D,
+    input        Jalr0D,
     input        Branch0D,
     input        ALUSrc0D,
     input  [1:0] ResultSrc0D,
@@ -16,6 +17,7 @@ module datapath(
     input        RegWrite1D,
     input        MemWrite1D,
     input        Jump1D,
+    input        Jalr1D,
     input        Branch1D,
     input        ALUSrc1D,
     input  [1:0] ResultSrc1D,
@@ -197,13 +199,13 @@ module datapath(
     // REGISTRO ID/EX (DUAL ID/EX)
     // =========================================================================
     // Via 0
-    reg        RegWrite0E, MemWrite0E, Jump0E, Branch0E, ALUSrc0E;
+    reg        RegWrite0E, MemWrite0E, Jump0E, Jalr0E, Branch0E, ALUSrc0E;
     reg [1:0]  ResultSrc0E;
     reg [2:0]  ALUControl0E;
     reg [31:0] RD1_0E, RD2_0E, PC0E, ImmExt0E;
 
     // Via 1
-    reg        RegWrite1E, MemWrite1E, Jump1E, Branch1E, ALUSrc1E;
+    reg        RegWrite1E, MemWrite1E, Jump1E, Jalr1E, Branch1E, ALUSrc1E;
     reg [1:0]  ResultSrc1E;
     reg [2:0]  ALUControl1E;
     reg [31:0] RD1_1E, RD2_1E, PC1E, ImmExt1E;
@@ -211,12 +213,12 @@ module datapath(
     always @(posedge clk) begin
         if (reset || FlushE) begin
             // Limpiar ambas vias
-            RegWrite0E   <= 1'b0; MemWrite0E <= 1'b0; Jump0E <= 1'b0; Branch0E <= 1'b0;
+            RegWrite0E   <= 1'b0; MemWrite0E <= 1'b0; Jump0E <= 1'b0; Jalr0E <= 1'b0; Branch0E <= 1'b0;
             ALUSrc0E     <= 1'b0; ResultSrc0E <= 2'b00; ALUControl0E <= 3'b000;
             RD1_0E       <= 32'b0; RD2_0E <= 32'b0; PC0E <= 32'b0; ImmExt0E <= 32'b0;
             Rs1_0E       <= 5'b0; Rs2_0E <= 5'b0; Rd0E <= 5'b0;
 
-            RegWrite1E   <= 1'b0; MemWrite1E <= 1'b0; Jump1E <= 1'b0; Branch1E <= 1'b0;
+            RegWrite1E   <= 1'b0; MemWrite1E <= 1'b0; Jump1E <= 1'b0; Jalr1E <= 1'b0; Branch1E <= 1'b0;
             ALUSrc1E     <= 1'b0; ResultSrc1E <= 2'b00; ALUControl1E <= 3'b000;
             RD1_1E       <= 32'b0; RD2_1E <= 32'b0; PC1E <= 32'b0; ImmExt1E <= 32'b0;
             Rs1_1E       <= 5'b0; Rs2_1E <= 5'b0; Rd1E <= 5'b0;
@@ -224,7 +226,7 @@ module datapath(
         else begin
             // Avanzar Via 0
             RegWrite0E   <= Issue0 && RegWrite0D; MemWrite0E <= Issue0 && MemWrite0D;
-            Jump0E       <= Issue0 && Jump0D;     Branch0E   <= Issue0 && Branch0D;
+            Jump0E       <= Issue0 && Jump0D;     Jalr0E     <= Issue0 && Jalr0D; Branch0E   <= Issue0 && Branch0D;
             ALUSrc0E     <= ALUSrc0D;   ResultSrc0E <= ResultSrc0D;
             ALUControl0E <= ALUControl0D;
             RD1_0E       <= RD1_0D;     RD2_0E     <= RD2_0D;
@@ -233,7 +235,7 @@ module datapath(
 
             // Avanzar Via 1
             RegWrite1E   <= Issue1 && RegWrite1D; MemWrite1E <= Issue1 && MemWrite1D;
-            Jump1E       <= Issue1 && Jump1D;     Branch1E   <= Issue1 && Branch1D;
+            Jump1E       <= Issue1 && Jump1D;     Jalr1E     <= Issue1 && Jalr1D; Branch1E   <= Issue1 && Branch1D;
             ALUSrc1E     <= ALUSrc1D;   ResultSrc1E <= ResultSrc1D;
             ALUControl1E <= ALUControl1D;
             RD1_1E       <= RD1_1D;     RD2_1E     <= RD2_1D;
@@ -310,7 +312,9 @@ module datapath(
     wire Take0 = (Branch0E && Zero0E) || Jump0E;
     wire Take1 = (Branch1E && Zero1E) || Jump1E;
     assign PCSrcE = Take0 || Take1;
-    assign PCTargetE = Take0 ? (PC0E + ImmExt0E) : (PC1E + ImmExt1E);
+    wire [31:0] Target0E = Jalr0E ? {ALUResult0E[31:1], 1'b0} : (PC0E + ImmExt0E);
+    wire [31:0] Target1E = Jalr1E ? {ALUResult1E[31:1], 1'b0} : (PC1E + ImmExt1E);
+    assign PCTargetE = Take0 ? Target0E : Target1E;
 
     // =========================================================================
     // REGISTRO EX/MEM (DUAL EX/MEM)

@@ -21,7 +21,7 @@ module riscvpipeline(
     wire [6:0] op0;
     wire [2:0] funct3_0;
     wire       funct7b5_0;
-    wire       RegWrite0D, MemWrite0D, Jump0D, Branch0D, ALUSrc0D;
+    wire       RegWrite0D, MemWrite0D, Jump0D, Jalr0D, Branch0D, ALUSrc0D;
     wire [1:0] ResultSrc0D, ImmSrc0D;
     wire [2:0] ALUControl0D;
 
@@ -29,7 +29,7 @@ module riscvpipeline(
     wire [6:0] op1;
     wire [2:0] funct3_1;
     wire       funct7b5_1;
-    wire       RegWrite1D, MemWrite1D, Jump1D, Branch1D, ALUSrc1D;
+    wire       RegWrite1D, MemWrite1D, Jump1D, Jalr1D, Branch1D, ALUSrc1D;
     wire [1:0] ResultSrc1D, ImmSrc1D;
     wire [2:0] ALUControl1D;
 
@@ -59,6 +59,7 @@ module riscvpipeline(
         .ALUSrc(ALUSrc0D),
         .RegWrite(RegWrite0D),
         .Jump(Jump0D),
+        .Jalr(Jalr0D),
         .Branch(Branch0D),
         .ImmSrc(ImmSrc0D),
         .ALUControl(ALUControl0D)
@@ -74,6 +75,7 @@ module riscvpipeline(
         .ALUSrc(ALUSrc1D),
         .RegWrite(RegWrite1D),
         .Jump(Jump1D),
+        .Jalr(Jalr1D),
         .Branch(Branch1D),
         .ImmSrc(ImmSrc1D),
         .ALUControl(ALUControl1D)
@@ -135,6 +137,7 @@ module riscvpipeline(
         .RegWrite0D(RegWrite0D),
         .MemWrite0D(MemWrite0D),
         .Jump0D(Jump0D),
+        .Jalr0D(Jalr0D),
         .Branch0D(Branch0D),
         .ALUSrc0D(ALUSrc0D),
         .ResultSrc0D(ResultSrc0D),
@@ -145,6 +148,7 @@ module riscvpipeline(
         .RegWrite1D(RegWrite1D),
         .MemWrite1D(MemWrite1D),
         .Jump1D(Jump1D),
+        .Jalr1D(Jalr1D),
         .Branch1D(Branch1D),
         .ALUSrc1D(ALUSrc1D),
         .ResultSrc1D(ResultSrc1D),
