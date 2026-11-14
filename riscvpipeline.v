@@ -21,6 +21,7 @@ module riscvpipeline(
     wire       RegWriteD;
     wire       MemWriteD;
     wire       JumpD;
+    wire       JalrD;
     wire       BranchD;
     wire       ALUSrcD;
     wire [1:0] ResultSrcD;
@@ -50,6 +51,7 @@ module riscvpipeline(
         .ALUSrc(ALUSrcD),
         .RegWrite(RegWriteD),
         .Jump(JumpD),
+        .Jalr(JalrD),
         .Branch(BranchD),
         .ImmSrc(ImmSrcD),
         .ALUControl(ALUControlD)
@@ -86,6 +88,7 @@ module riscvpipeline(
         .RegWriteD(RegWriteD),
         .MemWriteD(MemWriteD),
         .JumpD(JumpD),
+        .JalrD(JalrD),
         .BranchD(BranchD),
         .ALUSrcD(ALUSrcD),
         .ResultSrcD(ResultSrcD),

@@ -6,6 +6,7 @@ module datapath(
     input        RegWriteD,
     input        MemWriteD,
     input        JumpD,
+    input        JalrD,
     input        BranchD,
     input        ALUSrcD,
     input  [1:0] ResultSrcD,
@@ -74,6 +75,7 @@ module datapath(
     reg        RegWriteE;
     reg        MemWriteE;
     reg        JumpE;
+    reg        JalrE;
     reg        BranchE;
     reg        ALUSrcE;
     reg [1:0]  ResultSrcE;
@@ -198,6 +200,7 @@ module datapath(
             RegWriteE   <= 1'b0;
             MemWriteE   <= 1'b0;
             JumpE       <= 1'b0;
+            JalrE       <= 1'b0;
             BranchE     <= 1'b0;
             ALUSrcE     <= 1'b0;
             ResultSrcE  <= 2'b00;
@@ -218,6 +221,7 @@ module datapath(
             RegWriteE   <= RegWriteD;
             MemWriteE   <= MemWriteD;
             JumpE       <= JumpD;
+            JalrE       <= JalrD;
             BranchE     <= BranchD;
             ALUSrcE     <= ALUSrcD;
             ResultSrcE  <= ResultSrcD;
@@ -282,10 +286,10 @@ module datapath(
         .zero(ZeroE)
     );
 
-    // Destino del salto
-    assign PCTargetE = PCE + ImmExtE;
+    // Destino del salto: JAL y Branch relativos al PC; JALR relativo a registro (SrcAE + ImmExtE) con LSB a 0
+    assign PCTargetE = JalrE ? {ALUResultE[31:1], 1'b0} : (PCE + ImmExtE);
 
-    // Se toma el salto si es branch con Zero, o si es jump
+    // Se toma el salto si es branch con Zero, o si es jump (JAL o JALR)
     assign PCSrcE = (BranchE && ZeroE) || JumpE;
 
 
