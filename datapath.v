@@ -53,6 +53,8 @@ module datapath(
     output reg [4:0] Rd0M, Rd1M,
     output reg [4:0] Rd0W, Rd1W,
     output       PCSrcE,
+    output       PCSrcD,          // salto resuelto en Decode (optimizacion EF)
+    output [31:0] PCTargetD,       // destino calculado en Decode
     output reg   RegWrite0M, RegWrite1M,
     output reg   RegWrite0W, RegWrite1W,
     output       ResultSrc0E0,
@@ -86,6 +88,45 @@ module datapath(
     wire [31:0] PCTargetE;
     assign PCF = PCFReg;
 
+    // =========================================================================
+    // DECODE: logica combinacional para resolucion anticipada de saltos (EF)
+    // =========================================================================
+    // Busy_v: rs1 de la via v aun esta en vuelo (en EX o MEM) → jalr no puede
+    // resolverse en Decode y debe esperar a Execute como la arquitectura base.
+    wire Busy0D = Jalr0D && Valid0D && (
+        (RegWrite0E && Rd0E != 5'd0 && Rd0E == Rs1_0D) ||
+        (RegWrite1E && Rd1E != 5'd0 && Rd1E == Rs1_0D) ||
+        (RegWrite0M && Rd0M != 5'd0 && Rd0M == Rs1_0D) ||
+        (RegWrite1M && Rd1M != 5'd0 && Rd1M == Rs1_0D));
+
+    wire Busy1D = Jalr1D && Valid1D && (
+        (RegWrite0E && Rd0E != 5'd0 && Rd0E == Rs1_1D) ||
+        (RegWrite1E && Rd1E != 5'd0 && Rd1E == Rs1_1D) ||
+        (RegWrite0M && Rd0M != 5'd0 && Rd0M == Rs1_1D) ||
+        (RegWrite1M && Rd1M != 5'd0 && Rd1M == Rs1_1D));
+
+    // Early_v: salto que se resuelve en Decode
+    //   jal puro  → siempre (el destino es PC + imm, sin registros)
+    //   jalr      → solo si rs1 ya esta disponible en el banco de registros
+    wire Early0 = Issue0 && ((Jump0D && !Jalr0D) || (Jalr0D && !Busy0D));
+    wire Early1 = Issue1 && ((Jump1D && !Jalr1D) || (Jalr1D && !Busy1D));
+
+    // Target en Decode
+    //   jal:  PC + ImmExt
+    //   jalr: (RD1 + ImmExt) & ~1
+    wire [31:0] JalTarget0D  = PC0D + ImmExt0D;
+    wire [31:0] JalrTarget0D = {(RD1_0D + ImmExt0D)[31:1], 1'b0};
+    wire [31:0] JalTarget1D  = PC1D + ImmExt1D;
+    wire [31:0] JalrTarget1D = {(RD1_1D + ImmExt1D)[31:1], 1'b0};
+
+    wire [31:0] Target0D = Jalr0D ? JalrTarget0D : JalTarget0D;
+    wire [31:0] Target1D = Jalr1D ? JalrTarget1D : JalTarget1D;
+
+    // PCSrcD tiene prioridad solo si no hay ya un salto tomado en EX
+    assign PCSrcD    = !PCSrcE && (Early0 || Early1);
+    assign PCTargetD = Early0 ? Target0D : Target1D;
+    // =========================================================================
+
     always @(posedge clk) begin
       if (reset) begin
         PCFReg  <= 32'b0;
@@ -97,7 +138,18 @@ module datapath(
         Valid1D <= 1'b0;
       end else if (FlushD) begin
         // Las instrucciones del camino incorrecto no deben ejecutarse.
+        // FlushD se activa por PCSrcE (hazard.v). PCTargetE ya es el destino.
         PCFReg  <= PCTargetE;
+        Instr0D <= 32'h00000013;
+        Instr1D <= 32'h00000013;
+        PC0D    <= 32'b0;
+        PC1D    <= 32'b0;
+        Valid0D <= 1'b0;
+        Valid1D <= 1'b0;
+      end else if (PCSrcD) begin
+        // Redireccion desde Decode: solo se descarta la instruccion en IF
+        // (el slot siguiente). IF/ID queda invalido para ese unico slot.
+        PCFReg  <= PCTargetD;
         Instr0D <= 32'h00000013;
         Instr1D <= 32'h00000013;
         PC0D    <= 32'b0;
@@ -225,8 +277,12 @@ module datapath(
         end
         else begin
             // Avanzar Via 0
+            // Jump0E y Jalr0E se apagan si el salto ya fue resuelto en Decode
+            // para que Execute no repita la redireccion del PC.
             RegWrite0E   <= Issue0 && RegWrite0D; MemWrite0E <= Issue0 && MemWrite0D;
-            Jump0E       <= Issue0 && Jump0D;     Jalr0E     <= Issue0 && Jalr0D; Branch0E   <= Issue0 && Branch0D;
+            Jump0E       <= Issue0 && Jump0D  && !Early0; // apagado si resuelto en D
+            Jalr0E       <= Issue0 && Jalr0D  && !Early0; // apagado si resuelto en D
+            Branch0E     <= Issue0 && Branch0D;
             ALUSrc0E     <= ALUSrc0D;   ResultSrc0E <= ResultSrc0D;
             ALUControl0E <= ALUControl0D;
             RD1_0E       <= RD1_0D;     RD2_0E     <= RD2_0D;
@@ -234,8 +290,11 @@ module datapath(
             Rs1_0E       <= Rs1_0D;     Rs2_0E     <= Rs2_0D;     Rd0E <= Rd0D;
 
             // Avanzar Via 1
+            // Jump1E y Jalr1E se apagan si el salto ya fue resuelto en Decode
             RegWrite1E   <= Issue1 && RegWrite1D; MemWrite1E <= Issue1 && MemWrite1D;
-            Jump1E       <= Issue1 && Jump1D;     Jalr1E     <= Issue1 && Jalr1D; Branch1E   <= Issue1 && Branch1D;
+            Jump1E       <= Issue1 && Jump1D  && !Early1; // apagado si resuelto en D
+            Jalr1E       <= Issue1 && Jalr1D  && !Early1; // apagado si resuelto en D
+            Branch1E     <= Issue1 && Branch1D;
             ALUSrc1E     <= ALUSrc1D;   ResultSrc1E <= ResultSrc1D;
             ALUControl1E <= ALUControl1D;
             RD1_1E       <= RD1_1D;     RD2_1E     <= RD2_1D;

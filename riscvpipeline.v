@@ -45,6 +45,8 @@ module riscvpipeline(
 
     wire       StallF, StallD;
     wire       FlushD, FlushE;
+    wire       PCSrcD;           // salto resuelto en Decode (optimizacion EF)
+    wire [31:0] PCTargetD;       // destino calculado en Decode
 
     // =========================================================================
     // DUAL DECODE: DOS CONTROLADORES EN PARALELO
@@ -194,6 +196,8 @@ module riscvpipeline(
         .Rd0W(Rd0W),
         .Rd1W(Rd1W),
         .PCSrcE(PCSrcE),
+        .PCSrcD(PCSrcD),
+        .PCTargetD(PCTargetD),
         .RegWrite0M(RegWrite0M),
         .RegWrite1M(RegWrite1M),
         .RegWrite0W(RegWrite0W),
