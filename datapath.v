@@ -49,7 +49,7 @@ module datapath(
     output reg        MemWriteM,
     input      [31:0] ReadDataM
 );
-
+    
  
     // DECLARACION DE SENALES
  
@@ -365,5 +365,14 @@ module datapath(
         .s(ResultSrcW),
         .y(ResultW)
     );
+
+reg ValidD, ValidE, ValidM, ValidW;
+always @(posedge clk) begin
+  if (reset || FlushD) ValidD <= 0; else if (!StallD) ValidD <= 1;
+  if (reset || FlushE) ValidE <= 0; else ValidE <= ValidD;
+  ValidM <= reset ? 1'b0 : ValidE;
+  ValidW <= reset ? 1'b0 : ValidM;
+end    
+    
 
 endmodule
