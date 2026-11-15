@@ -416,4 +416,6 @@ module datapath(
         end
     end
 
+    wire PCSrcD = 1'b0;   // B no resuelve en Decode
+
 endmodule
