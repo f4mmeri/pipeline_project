@@ -373,6 +373,11 @@ always @(posedge clk) begin
   ValidM <= reset ? 1'b0 : ValidE;
   ValidW <= reset ? 1'b0 : ValidM;
 end    
-    
+    // alias para que el mismo testbench funcione en las tres ramas
+wire        Valid0W = ValidW;
+wire        Valid1W = 1'b0;
+wire [31:0] PC0W    = PCPlus4W - 32'd4;
+wire [31:0] PC1W    = 32'd0;
+wire        PCSrcD  = 1'b0; 
 
 endmodule
