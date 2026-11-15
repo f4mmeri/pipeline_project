@@ -74,6 +74,45 @@ module datapath(
     output     [31:0] Result0W, Result1W
 );
 
+    // =========================================================================
+    // DECLARACIONES (todas antes de su uso)
+    // =========================================================================
+    // Fetch
+    reg  [31:0] PCFReg;
+    reg  [31:0] PC0D, PC1D;
+    wire [31:0] PCTargetE;
+    assign PCF = PCFReg;
+
+    // Decode
+    wire [31:0] RD1_0D, RD2_0D;
+    wire [31:0] RD1_1D, RD2_1D;
+    wire [31:0] ImmExt0D, ImmExt1D;
+
+    // ID/EX - Via 0
+    reg        RegWrite0E, MemWrite0E, Jump0E, Jalr0E, Branch0E, ALUSrc0E;
+    reg [1:0]  ResultSrc0E;
+    reg [2:0]  ALUControl0E;
+    reg [31:0] RD1_0E, RD2_0E, PC0E, ImmExt0E;
+
+    // ID/EX - Via 1
+    reg        RegWrite1E, MemWrite1E, Jump1E, Jalr1E, Branch1E, ALUSrc1E;
+    reg [1:0]  ResultSrc1E;
+    reg [2:0]  ALUControl1E;
+    reg [31:0] RD1_1E, RD2_1E, PC1E, ImmExt1E;
+
+    // EX/MEM
+    reg [1:0]  ResultSrc0M, ResultSrc1M;
+    reg [31:0] ALUResult0M, ALUResult1M;
+    reg [31:0] WriteData0M, WriteData1M;
+    reg [31:0] PC0M, PC1M;
+    reg        MemWrite0M, MemWrite1M;
+
+    // MEM/WB
+    reg [1:0]  ResultSrc0W, ResultSrc1W;
+    reg [31:0] ALUResult0W, ALUResult1W;
+    reg [31:0] ReadData0W, ReadData1W;
+    reg [31:0] PC0W, PC1W;
+
     // ================================================================
     // FETCH / IF-ID: PCF apunta a la PROXIMA instruccion no almacenada.
     // 2 emitidas: reemplazar par completo y PCF += 8.
@@ -81,11 +120,6 @@ module datapath(
     // 0 emitidas: mantener PCF e IF/ID sin cambios.
     // Un redirect de branch tiene prioridad sobre la retencion.
     // ================================================================
-    reg [31:0] PCFReg;
-    reg [31:0] PC0D, PC1D;
-    wire [31:0] PCTargetE;
-    assign PCF = PCFReg;
-
     always @(posedge clk) begin
       if (reset) begin
         PCFReg  <= 32'b0;
@@ -162,10 +196,6 @@ module datapath(
     assign Rs2_1D     = Instr1D[24:20];
     wire [4:0] Rd1D   = Instr1D[11:7];
 
-    // Cables de datos del Banco de Registros (4 lecturas simultaneas)
-    wire [31:0] RD1_0D, RD2_0D;
-    wire [31:0] RD1_1D, RD2_1D;
-
     // Banco de Registros 4R / 2W
     regfile rf(
         .clk(clk),
@@ -191,25 +221,12 @@ module datapath(
     );
 
     // Extension de inmediatos para ambas vias
-    wire [31:0] ImmExt0D, ImmExt1D;
     extend ext0(.instr(Instr0D[31:7]), .immsrc(ImmSrc0D), .immext(ImmExt0D));
     extend ext1(.instr(Instr1D[31:7]), .immsrc(ImmSrc1D), .immext(ImmExt1D));
 
     // =========================================================================
     // REGISTRO ID/EX (DUAL ID/EX)
     // =========================================================================
-    // Via 0
-    reg        RegWrite0E, MemWrite0E, Jump0E, Jalr0E, Branch0E, ALUSrc0E;
-    reg [1:0]  ResultSrc0E;
-    reg [2:0]  ALUControl0E;
-    reg [31:0] RD1_0E, RD2_0E, PC0E, ImmExt0E;
-
-    // Via 1
-    reg        RegWrite1E, MemWrite1E, Jump1E, Jalr1E, Branch1E, ALUSrc1E;
-    reg [1:0]  ResultSrc1E;
-    reg [2:0]  ALUControl1E;
-    reg [31:0] RD1_1E, RD2_1E, PC1E, ImmExt1E;
-
     always @(posedge clk) begin
         if (reset || FlushE) begin
             // Limpiar ambas vias
@@ -259,7 +276,7 @@ module datapath(
     wire Hit0W0 = RegWrite0W && (Rd0W != 5'd0);
     wire Hit1W1 = RegWrite1W && (Rd1W != 5'd0);
 
-    // Los Mux incluyen PC+4 para JAL, no solo el resultado ALU.
+    // Los Mux incluyen PC+4 para JAL/JALR, no solo el resultado ALU.
     wire [31:0] MVal0 = ResultSrc0M[1] ? (PC0M + 32'd4) : ALUResult0M;
     wire [31:0] MVal1 = ResultSrc1M[1] ? (PC1M + 32'd4) : ALUResult1M;
 
@@ -319,12 +336,6 @@ module datapath(
     // =========================================================================
     // REGISTRO EX/MEM (DUAL EX/MEM)
     // =========================================================================
-    reg [1:0]  ResultSrc0M, ResultSrc1M;
-    reg [31:0] ALUResult0M, ALUResult1M;
-    reg [31:0] WriteData0M, WriteData1M;
-    reg [31:0] PC0M, PC1M;
-    reg        MemWrite0M, MemWrite1M;
-
     always @(posedge clk) begin
         if (reset) begin
             RegWrite0M  <= 1'b0; MemWrite0M <= 1'b0; ResultSrc0M <= 2'b00;
@@ -354,11 +365,6 @@ module datapath(
     // =========================================================================
     // REGISTRO MEM/WB (DUAL MEM/WB)
     // =========================================================================
-    reg [1:0]  ResultSrc0W, ResultSrc1W;
-    reg [31:0] ALUResult0W, ALUResult1W;
-    reg [31:0] ReadData0W, ReadData1W;
-    reg [31:0] PC0W, PC1W;
-
     always @(posedge clk) begin
         if (reset) begin
             RegWrite0W  <= 1'b0; ResultSrc0W <= 2'b00;
@@ -394,5 +400,20 @@ module datapath(
         .s(ResultSrc1W),
         .y(Result1W)
     );
+
+    // =========================================================================
+    // INSTRUMENTACION DE RETIRADAS (solo medicion, no afecta al hardware)
+    // =========================================================================
+    reg Valid0E, Valid1E, Valid0M, Valid1M, Valid0W, Valid1W;
+    always @(posedge clk) begin
+        if (reset || FlushE) begin Valid0E <= 1'b0; Valid1E <= 1'b0; end
+        else begin Valid0E <= Issue0; Valid1E <= Issue1; end
+        if (reset) begin
+            Valid0M <= 1'b0; Valid1M <= 1'b0; Valid0W <= 1'b0; Valid1W <= 1'b0;
+        end else begin
+            Valid0M <= Valid0E; Valid1M <= Valid1E;
+            Valid0W <= Valid0M; Valid1W <= Valid1M;
+        end
+    end
 
 endmodule
