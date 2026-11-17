@@ -1,0 +1,57 @@
+[dumpfile] "programa_propio.vcd"
+[size] 1600 900
+[signals_width] 260
+[sst_expanded] 0
+[sst_width] 1
+@200
+-RELOJ
+@28
+testbench.clk
+@24
+testbench.ciclos
+@200
+-FETCH / DECODE
+@22
+testbench.dut.rvpipeline.dp.PCF[31:0]
+@22
+testbench.dut.rvpipeline.dp.InstrD[31:0]
+@28
+testbench.dut.rvpipeline.dp.ValidD
+@200
+-HAZARD UNIT
+@28
+testbench.dut.rvpipeline.dp.StallF
+@28
+testbench.dut.rvpipeline.dp.StallD
+@28
+testbench.dut.rvpipeline.dp.FlushD
+@28
+testbench.dut.rvpipeline.dp.FlushE
+@28
+testbench.dut.rvpipeline.dp.ForwardAE[1:0]
+@28
+testbench.dut.rvpipeline.dp.ForwardBE[1:0]
+@200
+-SALTO EN EXECUTE
+@28
+testbench.dut.rvpipeline.dp.PCSrcE
+@22
+testbench.dut.rvpipeline.dp.PCTargetE[31:0]
+@200
+-CONTADORES
+@24
+testbench.saltos_EX
+@24
+testbench.stalls
+@200
+-RESULTADOS
+@24
+testbench.x4[31:0]
+@24
+testbench.x10[31:0]
+@24
+testbench.x13[31:0]
+@24
+testbench.x31[31:0]
+@24
+testbench.M1588[31:0]

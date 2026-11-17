@@ -379,5 +379,6 @@ wire        Valid1W = 1'b0;
 wire [31:0] PC0W    = PCPlus4W - 32'd4;
 wire [31:0] PC1W    = 32'd0;
 wire        PCSrcD  = 1'b0; 
+wire [31:0] PCTargetD = 32'd0;   // solo para el testbench (Single no salta en Decode)
 
 endmodule

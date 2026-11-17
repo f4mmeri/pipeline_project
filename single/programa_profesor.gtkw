@@ -1,0 +1,87 @@
+[dumpfile] "programa_profesor.vcd"
+[size] 1600 900
+[signals_width] 260
+[sst_expanded] 0
+[sst_width] 1
+@200
+-RELOJ
+@28
+testbench.clk
+@24
+testbench.ciclos
+@200
+-CIERRE DE ETAPAS
+@28
+testbench.check_A
+@28
+testbench.check_B
+@28
+testbench.check_C
+@28
+testbench.check_D
+@200
+-FETCH / DECODE
+@22
+testbench.dut.rvpipeline.dp.PCF[31:0]
+@22
+testbench.dut.rvpipeline.dp.InstrD[31:0]
+@28
+testbench.dut.rvpipeline.dp.ValidD
+@200
+-HAZARD UNIT
+@28
+testbench.dut.rvpipeline.dp.StallF
+@28
+testbench.dut.rvpipeline.dp.StallD
+@28
+testbench.dut.rvpipeline.dp.FlushD
+@28
+testbench.dut.rvpipeline.dp.FlushE
+@28
+testbench.dut.rvpipeline.dp.ForwardAE[1:0]
+@28
+testbench.dut.rvpipeline.dp.ForwardBE[1:0]
+@200
+-SALTO EN EXECUTE
+@28
+testbench.dut.rvpipeline.dp.PCSrcE
+@22
+testbench.dut.rvpipeline.dp.PCTargetE[31:0]
+@200
+-MEMORIA
+@28
+testbench.MemWrite
+@24
+testbench.DataAdr[31:0]
+@200
+-REGISTROS
+@24
+testbench.x5[31:0]
+@24
+testbench.x10[31:0]
+@24
+testbench.x15[31:0]
+@24
+testbench.x18[31:0]
+@24
+testbench.x21[31:0]
+@24
+testbench.x22[31:0]
+@24
+testbench.x24[31:0]
+@24
+testbench.x28[31:0]
+@24
+testbench.x29[31:0]
+@24
+testbench.x31[31:0]
+@200
+-MEMORIA DE DATOS
+@24
+testbench.M1544[31:0]
+@24
+testbench.M1556[31:0]
+@24
+testbench.M1568[31:0]
+@24
+testbench.M1588[31:0]
