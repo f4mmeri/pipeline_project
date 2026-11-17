@@ -9,7 +9,7 @@ module imem(
     initial begin
         for (i = 0; i < 256; i = i + 1)
             RAM[i] = 32'h00000013; // NOP = addi x0,x0,0
-        $readmemh("C:/Users/ameri/OneDrive/Desktop/arqui/pipeline_proyect/programa_opt.mem", RAM);
+        $readmemh("programa_propio.mem", RAM);
     end
 
     // PCF = siguiente instruccion no almacenada en IF/ID.

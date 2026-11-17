@@ -417,5 +417,6 @@ module datapath(
     end
 
     wire PCSrcD = 1'b0;   // B no resuelve en Decode
+    wire [31:0] PCTargetD = 32'd0;  // solo para el testbench (B no salta en Decode)
 
 endmodule
